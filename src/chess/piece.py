@@ -239,10 +239,15 @@ class King(Piece):
         col_diff = abs(new_col - col)
 
         # One square any direction
+        # TODO: Check if moving into check
         if row_diff <= 1 and col_diff <= 1 and (row_diff + col_diff > 0):
             destination_piece = board[new_row][new_col]
-            if destination_piece is None:
-               if (destination_piece.id.isupper() and self.id.islower()) or \
-                  (destination_piece.id.islower() and self.id.isupper()):
-                    return True
+            if destination_piece is not None:
+                if destination_piece.id.lower() == "k" or \
+                    (destination_piece.id.isupper() and self.id.isupper()) or \
+                        (destination_piece.id.islower() and self.id.islower()):
+                    return False
+            return True
         return False
+            
+            
