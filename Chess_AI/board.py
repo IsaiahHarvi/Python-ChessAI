@@ -5,7 +5,26 @@ from piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 
 
 class Board:
+    """
+    Represents a chess board.
+
+    Attributes:
+        board (list): The 2D list representing the chess board.
+        board_df (None): Placeholder for a DataFrame representation of the board.
+
+    Methods:
+        __init__(): Initializes the Board object.
+        create_start_board(): Creates the starting configuration of the chess board.
+        print_board(): Prints the current state of the chess board.
+        move_piece(current_pos, new_pos): Moves a chess piece from the current position to the new position.
+        get_piece_from(pos): Retrieves the chess piece at the specified position.
+        set_piece_at(pos, old_pos, piece): Sets a chess piece at the specified position and updates its old position.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the Board object.
+        """
         self.board = None
         self.board_df = None
 
@@ -13,6 +32,9 @@ class Board:
         self.create_start_board()
 
     def create_start_board(self):
+        """
+        Creates the starting configuration of the chess board.
+        """
         pieces = [Pawn, Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
         
         # Main pieces
@@ -38,8 +60,12 @@ class Board:
                 row6, 
                 row7
             ]
+        np.array(self.board)
 
     def print_board(self):
+        """
+        Prints the current state of the chess board.
+        """
         row_label = [1, 2, 3, 4, 5, 6, 7, 8]
 
         print("    a  b  c  d  e  f  g  h")
@@ -65,11 +91,19 @@ class Board:
             print("\033[0m")
 
     def move_piece(self, current_pos, new_pos):
+        """
+        Moves a chess piece from the current position to the new position.
+
+        Args:
+            current_pos (str): The current position of the piece in algebraic notation (e.g., "a2").
+            new_pos (str): The new position to move the piece to in algebraic notation (e.g., "a4").
+        """
         current_pos = (int(current_pos[1]) - 1, ord(current_pos[0]) - 97)
         new_pos = (int(new_pos[1]) - 1, ord(new_pos[0]) - 97)
 
         piece = self.get_piece_from(current_pos)
-        print(f"Retrieved '{piece.__class__.__name__}' from {current_pos}")
+        print(retrieved_string := f"Retrieved '{piece.__class__.__name__}' from {current_pos}")
+        print(f"{'─' * len(retrieved_string)}")
 
         if piece != None and piece.is_valid_move(new_pos, self.board):
             self.set_piece_at(new_pos, current_pos, piece)
@@ -79,13 +113,33 @@ class Board:
             # TODO: Add error handling
 
     def get_piece_from(self, pos):
+        """
+        Retrieves the chess piece at the specified position.
+
+        Args:
+            pos (tuple): The position of the piece as a tuple of row and column indices.
+
+        Returns:
+            object: The chess piece at the specified position.
+        """
         row, col = pos
         return self.board[row][col]
 
     def set_piece_at(self, pos, old_pos, piece):
+        """
+        Sets a chess piece at the specified position and updates its old position.
+
+        Args:
+            pos (tuple): The position to set the piece at as a tuple of row and column indices.
+            old_pos (tuple): The old position of the piece as a tuple of row and column indices.
+            piece (object): The chess piece object to set at the specified position.
+        """
         row, col = pos
         self.board[row][col] = piece
 
         # Remove piece from old position
         old_row, old_col = old_pos
         self.board[old_row][old_col] = None
+
+        # Update piece position
+        piece.pos = pos

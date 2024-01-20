@@ -1,7 +1,14 @@
 from board import Board
 from utils import valid_move_input
 
-if __name__ == "__main__":
+def chess():
+    """
+    This function initializes the chess board, prompts the players for moves,
+    and updates the board accordingly until the game is finished or interrupted.
+
+    NOTE: Moves are given in the format: 'a2 a4' (from a2 to a4)
+    """
+
     input("\nMoves are given in the format: 'a2 a4' (from a2 to a4)\nPress enter to continue...")
 
     board = Board()
@@ -18,6 +25,9 @@ if __name__ == "__main__":
 
             turn_color = not turn_color
 
-
     except KeyboardInterrupt:
         print("\nGoodbye!")
+
+
+if __name__ == "__main__":
+    chess()

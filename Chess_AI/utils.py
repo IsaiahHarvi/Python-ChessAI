@@ -1,3 +1,7 @@
+"""
+Holds misc. functions
+"""
+
 def valid_move_input(prompt):
     while True:
         response = input(prompt)
