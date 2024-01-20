@@ -22,9 +22,16 @@ def chess():
 
             # If the move was valid, switch turns
             if board.move_piece(move[0], move[1]) == 1:
+                checked, color = board.is_in_check()
+                if checked and board.is_checkmate(color): # If the king is in checkmate
+                    input(f"Checkmate! {['Black', 'White'][not color]} wins!")
+                    break
+
+                elif checked: # If the king is in check, but not checkmate 
+                    print(f"Check! {['Black', 'White'][not color]} is in check!")
+                
                 board.print_board()
                 turn_color = not turn_color
-
 
     except KeyboardInterrupt:
         print("\nGoodbye!")

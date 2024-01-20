@@ -33,6 +33,18 @@ class Piece:
         """
         pass
 
+    def get_all_moves(self, board) -> list:
+        """
+        Returns a list of all possible moves for the piece on the given chessboard.
+
+        Args:
+            board (Board): The chessboard on which the piece is placed.
+
+        Returns:
+            list: A list of all possible moves for the piece on the given chessboard.
+        """
+        pass
+
 # Child classes
 class Pawn(Piece):
     def __init__(self, color, pos) -> None:
@@ -67,12 +79,11 @@ class Pawn(Piece):
                 if (desired_location.id.islower() and self.id.isupper()) or \
                     (desired_location.id.isupper() and self.id.lower()):
                     return True
+                
         # TODO: En Passant
-        
-        # Promotion TODO: Implement promotion
-
         return False
 
+    # Promotion TODO: Implement promotion
     def promote(self, board):
         raise NotImplementedError
 
@@ -225,6 +236,8 @@ class King(Piece):
     def __init__(self, color, pos) -> None:
         super().__init__(color, pos)
         self.id = "K" if color == 1 else "k"
+        self.moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
 
     def is_valid_move(self, new_pos, board) -> bool:
         row, col = self.pos
@@ -249,5 +262,3 @@ class King(Piece):
                     return False
             return True
         return False
-            
-            
