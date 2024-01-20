@@ -20,10 +20,11 @@ def chess():
         while True:
             move = valid_move_input(f"\n{['Black', 'White'][turn_color]}'s move: ").split()
 
-            board.move_piece(move[0], move[1])
-            board.print_board()
+            # If the move was valid, switch turns
+            if board.move_piece(move[0], move[1]) == 1:
+                board.print_board()
+                turn_color = not turn_color
 
-            turn_color = not turn_color
 
     except KeyboardInterrupt:
         print("\nGoodbye!")

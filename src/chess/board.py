@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from chess.piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
+from piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 
 
 class Board:
@@ -106,9 +106,11 @@ class Board:
 
         if piece != None and piece.is_valid_move(new_pos, self.board):
             self.set_piece_at(new_pos, current_pos, piece)
+            return True
 
         else:
             print(f"Invalid move: {current_pos} -> {new_pos}", end="\n\n")
+            return False
             # TODO: Add error handling
 
     def get_piece_from(self, pos):
