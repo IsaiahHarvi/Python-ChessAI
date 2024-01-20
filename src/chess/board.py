@@ -89,7 +89,7 @@ class Board:
                 print("\033[0m", end="")
             print("\033[0m")
 
-    def move_piece(self, current_pos, new_pos):
+    def move_piece(self, current_pos, new_pos, turn_color):
         """
         Moves a chess piece from the current position to the new position.
 
@@ -100,7 +100,12 @@ class Board:
         current_pos = (int(current_pos[1]) - 1, ord(current_pos[0]) - 97)
         new_pos = (int(new_pos[1]) - 1, ord(new_pos[0]) - 97)
 
+        # White can't move black and vice versa
         piece = self.get_piece_from(current_pos)
+        if not ((piece.color == 1 and turn_color == 1) or (piece.color == -1 and turn_color == 0)):
+            print("Invalid move: Not your piece!")
+            return False
+
         print(retrieved_string := f"Retrieved '{piece.__class__.__name__}' from {current_pos}")
         print(f"{'─' * len(retrieved_string)}")
 

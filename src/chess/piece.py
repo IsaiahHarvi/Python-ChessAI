@@ -137,6 +137,7 @@ class Knight(Piece):
                 if (destination_piece.id.isupper() and self.id.islower()) or \
                    (destination_piece.id.islower() and self.id.isupper()):
                     return True
+            return True
         return False
 
 class Bishop(Piece):
