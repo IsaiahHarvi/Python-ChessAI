@@ -25,10 +25,14 @@ class Board:
         Initializes the Board object.
         """
         self.board = None
-        self.board_df = None
-
-        # Create board, update board_df
         self.create_start_board()
+        self.white_king = self.get_piece_from((0, 4))
+        self.black_king = self.get_piece_from((7, 4))
+        self.white_pieces = None
+        self.black_pieces = None
+        self.white_threats = None
+        self.black_threats = None
+        self.kings = [self.black_king, self.white_king]
 
     def create_start_board(self):
         """
@@ -60,6 +64,11 @@ class Board:
                 row7
             ]
         np.array(self.board)
+
+        # Update piece lists
+        self.white_pieces = row7.copy().extend(row6)
+        self.black_pieces = row1.copy().extend(row0)
+
 
     def print_board(self):
         """
@@ -149,3 +158,122 @@ class Board:
 
         # Update piece position
         piece.pos = pos
+
+    # TODO: Optimize
+    def is_in_check(self) -> tuple:
+        """
+        Determines if the current player's king is in check.
+
+        Returns:
+            A tuple containing a boolean value indicating if the king is in check,
+            and the color of the king that is in check.
+        """
+        is_check, self.white_threats, self.black_threats = False, [], []
+        for king in [self.white_king, self.black_king]: # TODO: (NOTE) May not have to check 2 kings everytime
+            for row in self.board:
+                for piece in row:
+                    if piece and piece.color != king.color:
+                        if piece.is_valid_move(king.pos, self.board):
+                            is_check = True
+                            self.white_threats.append(piece) if king.color else self.black_threats.append(piece)
+        return is_check, king.color
+                    
+    def is_checkmate(self, color):
+        """
+        Determines if the specified color is in checkmate.
+
+        Parameters:
+        - color (str): The color of the player to check for checkmate.
+
+        Returns:
+        - bool: True if the specified color is in checkmate, False otherwise.
+        """
+        # Check if King can move out of check
+        king = self.kings[color]
+
+        if self.can_king_escape(king):
+            return False
+
+        if self.can_block_king(king) or self.can_eliminate_threat(king):
+            return False
+        
+        return True
+
+    def can_king_escape(self, king):
+        """
+        Checks if the king can escape from check.
+
+        Args:
+            king (King): The king piece.
+
+        Returns:
+            bool: True if the king can escape from check, False otherwise.
+        """
+        for move in king.moves:
+            new_pos = (king.pos[0] + move[0], king.pos[1] + move[1])
+            new_row, new_col = new_pos
+            if (0 <= new_row < 8 and 0 <= new_col < 8):
+                if king.is_valid_move(new_pos, self.board):
+                    # Temp move
+                    original_piece = self.board[new_pos[0]][new_pos[1]]
+                    self.board[king.pos[0]][king.pos[1]], self.board[new_pos[0]][new_pos[1]] = None, king
+                    if not self.is_in_check():
+                        # Restore pieces
+                        self.board[king.pos[0]][king.pos[1]], self.board[new_pos[0]][new_pos[1]] = king, original_piece
+                        return False
+                    # Restore pieces
+                    self.board[king.pos[0]][king.pos[1]], self.board[new_pos[0]][new_pos[1]] = king, original_piece
+        return True
+        
+    def can_block_king(self, king):
+        """
+        Checks if any piece can block the check on the king.
+
+        Args:
+            king (Piece): The king piece.
+
+        Returns:
+            bool: True if a piece can block the check, False otherwise.
+        """
+        # Check if any piece can block the check
+        threat_pieces = [self.black_threats, self.white_threats][king.color]
+        for threat in threat_pieces:
+            if isinstance(threat, (Bishop, Rook, Queen)):
+                blocking_tiles = []
+                k_row, k_col = king.pos
+                t_row, t_col = threat.pos
+                row_step = 1 if t_row > k_row else -1 if t_row < k_row else 0
+                col_step = 1 if t_col > k_col else -1 if t_col < k_col else 0
+
+                current_row, current_col = k_row + row_step, k_col + col_step
+                while(current_row, current_col) != threat.pos:
+                    blocking_tiles.append((current_row, current_col)) # Append a tuple of possible pos to block at
+                    current_row += row_step
+                    current_col += col_step
+                
+                for new_pos in blocking_tiles:
+                    # Check if any piece can move to this square to block the check
+                    for piece in [self.black_pieces, self.white_pieces][king.color]:
+                        if piece.is_valid_move(new_pos, self.board):
+                            return True
+        return False
+                
+    def can_eliminate_threat(self, king):
+        """
+        Checks if the given king can eliminate any threats on the board.
+
+        Args:
+            king (King): The king to check for threat elimination.
+
+        Returns:
+            bool: True if the king can eliminate a threat, False otherwise.
+        """
+        threat_pieces = [self.black_threats, self.white_threats][king.color]
+
+        for threat in threat_pieces:
+            for row in self.board:
+                for piece in row:
+                    if piece and (piece.color == king.color) and (not isinstance(piece, King)):
+                        if piece.is_valid_move(threat.pos, self.board):
+                            return True
+        return False
