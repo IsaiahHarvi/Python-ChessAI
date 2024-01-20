@@ -1,7 +1,6 @@
 import os
 import numpy as np
-import pandas as pd
-from piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
+from chess.piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 
 
 class Board:
