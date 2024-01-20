@@ -53,19 +53,19 @@ class Pawn(Piece):
                 if (board[row + (1 * self.color)][col] == None and board[new_row][new_col] == None):
                     self.first_move = False
                     return True
-        else:
-            # If not first move, can only move 1 space
-            if new_row == row + (1 * self.color) and new_col == col:
-                if board[new_row][new_col] == None:  # If no pieces in the way
-                    return True
+                
+        # If not first move, can only move 1 space
+        if new_row == row + (1 * self.color) and new_col == col:
+            if board[new_row][new_col] == None:  # If no pieces in the way
+                return True
                 
         # Capture
         if new_row == row + (1 * self.color) and (new_col == col + 1 or new_col == col - 1):
             # If the piece at the desired location is not
             desired_location = board[new_row][new_col]
             if desired_location is not None:
-                if (desired_location.id.islower() and self.id.islower()) or \
-                    (desired_location.id.isupper() and self.id.isupper()):
+                if (desired_location.id.islower() and self.id.isupper()) or \
+                    (desired_location.id.isupper() and self.id.lower()):
                     return True
         # TODO: En Passant
         
@@ -134,10 +134,9 @@ class Knight(Piece):
         if (row_diff == 2 and col_diff == 1) or (row_diff == 1 and col_diff == 2):
             destination_piece = board[new_row][new_col]
             if destination_piece is not None:
-                if (destination_piece.id.isupper() and self.id.isupper()) or \
-                   (destination_piece.id.islower() and self.id.islower()):
-                    return False
-            return True
+                if (destination_piece.id.isupper() and self.id.islower()) or \
+                   (destination_piece.id.islower() and self.id.isupper()):
+                    return True
         return False
 
 class Bishop(Piece):
