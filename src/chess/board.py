@@ -111,7 +111,7 @@ class Board:
 
         # White can't move black and vice versa
         piece = self.get_piece_from(current_pos)
-        if not ((piece.color == 1 and turn_color == 1) or (piece.color == -1 and turn_color == 0)):
+        if piece and (not ((piece.color == 1 and turn_color == 1) or (piece.color == -1 and turn_color == 0))):
             print("Invalid move: Not your piece!")
             return False
 

@@ -29,6 +29,9 @@ def chess():
 
                 elif checked: # If the king is in check, but not checkmate 
                     print(f"Check! {['Black', 'White'][not color]} is in check!")
+
+                board.print_board()
+                turn_color = not turn_color
                 
     except KeyboardInterrupt:
         print("\nGoodbye!")
