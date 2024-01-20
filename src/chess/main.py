@@ -18,10 +18,10 @@ def chess():
     try:
         print("\n\n")
         while True:
-            move = valid_move_input(f"\n{['Black', 'White'][turn_color]}'s move: ").split()
+            position = valid_move_input(f"\n{['Black', 'White'][turn_color]}'s move: ").split()
 
             # If the move was valid, switch turns
-            if board.move_piece(move[0], move[1]) == 1:
+            if board.move_piece(position[0], position[1], turn_color) == 1:
                 checked, color = board.is_in_check()
                 if checked and board.is_checkmate(color): # If the king is in checkmate
                     input(f"Checkmate! {['Black', 'White'][not color]} wins!")
@@ -30,9 +30,6 @@ def chess():
                 elif checked: # If the king is in check, but not checkmate 
                     print(f"Check! {['Black', 'White'][not color]} is in check!")
                 
-                board.print_board()
-                turn_color = not turn_color
-
     except KeyboardInterrupt:
         print("\nGoodbye!")
 
