@@ -120,9 +120,20 @@ class Board:
         print(f"{'─' * len(retrieved_string)}")
 
         # Check if piece can move to new position
-        if piece != None and piece.is_valid_move(new_pos, self.board):
-            self.set_piece_at(new_pos, current_pos, piece)
-            return True
+        if (piece != None and (moved := piece.is_valid_move(new_pos, self.board))):
+            if moved == 'castle':
+                if self.can_king_castle(new_pos, piece):
+                    self.castle_king(new_pos, piece)
+                    return True
+                print(f"Invalid Move: {current_pos} -> {new_pos}", end="\n\n")
+                return False
+    
+            # elif moved == 'pawn_promotion':
+            #     piece.promote(new_pos, self.board)
+            #     return True
+            else:
+                self.set_piece_at(new_pos, current_pos, piece)
+                return True
 
         else:
             print(f"Invalid move: {current_pos} -> {new_pos}", end="\n\n")
@@ -161,27 +172,43 @@ class Board:
         # Update piece position
         piece.pos = pos
 
-    # TODO: Optimize
-    def is_in_check(self, color=None) -> tuple:
+    # TODO: Optimize 
+    def is_in_check(self, at_location=None) -> tuple or bool:
         """
-        Determines if the current player's king is in check.
+        Determines if there is a king, or any king, in check on the Board.
+
+        Args:
+            at_location (list): For checking if a king will be in check at a specific location.
+                                [pos, color]
+                                Defaults to none
 
         Returns:
             A tuple containing a boolean value indicating if the king is in check,
             and the color of the king that is in check.
+
+            If at_location is specified, returns a boolean value indicating if the king will be in check.
         """
         is_check, checked_color, self.white_threats, self.black_threats = False, None, [], []
-        check_kings = self.kings if not color else [self.kings[color]]
 
-        for king in check_kings:
+        if not at_location:
+            for king in self.kings:
+                for row in self.board:
+                    for piece in row:
+                        if piece and piece.color != king.color:
+                            if piece.is_valid_move(king.pos, self.board):
+                                is_check = True
+                                checked_color = king.color
+                                self.white_threats.append(piece) if king.color else self.black_threats.append(piece)
+            return is_check, checked_color
+        
+        else: # Allows to check is a king WILL be in check at a specific location
             for row in self.board:
                 for piece in row:
-                    if piece and piece.color != king.color:
-                        if piece.is_valid_move(king.pos, self.board):
-                            is_check = True
-                            checked_color = king.color
-                            self.white_threats.append(piece) if king.color else self.black_threats.append(piece)
-        return is_check, checked_color
+                    if (piece and piece.color != at_location[1]):
+                        if piece.is_valid_move(at_location[0], self.board):
+                            return True
+            return False
+
                     
     def is_checkmate(self, color):
         """
@@ -222,7 +249,7 @@ class Board:
                     # Temp move
                     original_piece = self.get_piece_from(new_pos)
                     self.board[king.pos[0]][king.pos[1]], self.board[new_pos[0]][new_pos[1]] = None, king
-                    if not self.is_in_check():
+                    if not self.is_in_check()[0]: # TODO: Test with the at_location parameter--passing in new_pos
                         # Restore pieces
                         self.board[king.pos[0]][king.pos[1]], self.board[new_pos[0]][new_pos[1]] = king, original_piece
                         return False
@@ -282,3 +309,65 @@ class Board:
                         if piece.is_valid_move(threat.pos, self.board):
                             return True
         return False
+    
+    def can_king_castle(self, new_pos, king) -> bool:
+        """
+        Checks if the king can castle to the given position on the given board.
+
+        Args:
+            new_pos (tuple): The position to which the king is being castled.
+            king (King): The king piece to castle.
+
+        Returns:
+            bool: True if the king can castle to the given position, False otherwise.
+        """
+        row, col = king.pos
+        new_row, new_col = new_pos
+
+        # Check if the king is in check
+        if self.is_in_check([king.pos, king.color]):
+            print("Can't castle while in check!")
+            return False
+
+        step = 1 if new_col > col else -1
+        rook_col = 7 if step == 1 else 0
+
+        # Check if the king is castling with a rook
+        rook = self.get_piece_from((row, rook_col))
+        if not rook or not isinstance(rook, Rook):
+            print("Can't castle without a rook!")
+            return False
+
+        # Check if there are any pieces between the king and the rook
+        # and check if the king is moving into check
+        for c in range(col+step, new_col-step, step):
+            if self.board[row][c] is not None or (self.is_in_check([(row, c), king.color])):
+                print("Can't castle through pieces or check!")
+                return False
+        
+        # Check if the king's new destination is in check
+        if self.is_in_check([(row, new_col), king.color]):
+            print("Can't castle into check!")
+            return False
+        
+        return True
+    
+    def castle_king(self, new_pos, king) -> None:
+        """
+        Castles the king to the given position on the given board.
+
+        Args:
+            new_pos (tuple): The position to which the king is being castled.
+            board (Board): The chessboard on which the king is placed.
+        """
+        row, col = king.pos
+        _, new_col = new_pos
+
+        step = 1 if new_col > col else -1
+        rook_col = 7 if step == 1 else 0
+        move_rook_col = col + step
+
+        rook = self.get_piece_from((row, rook_col))
+
+        self.set_piece_at(new_pos, king.pos, king)
+        self.set_piece_at((row, move_rook_col), (row, rook_col), rook)

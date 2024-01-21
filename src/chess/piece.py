@@ -262,4 +262,9 @@ class King(Piece):
                         (destination_piece.id.islower() and self.id.islower()):
                     return False
             return True
+        
+        # Castling
+        elif row_diff == 0 and col_diff == 2 and self.pos == (row, 3):
+            return 'castle'
         return False
+    
