@@ -115,9 +115,11 @@ class Board:
             print("Invalid move: Not your piece!")
             return False
 
+        # Show the retrieved piece
         print(retrieved_string := f"Retrieved '{piece.__class__.__name__}' from {current_pos}")
         print(f"{'─' * len(retrieved_string)}")
 
+        # Check if piece can move to new position
         if piece != None and piece.is_valid_move(new_pos, self.board):
             self.set_piece_at(new_pos, current_pos, piece)
             return True
@@ -160,7 +162,7 @@ class Board:
         piece.pos = pos
 
     # TODO: Optimize
-    def is_in_check(self) -> tuple:
+    def is_in_check(self, color=None) -> tuple:
         """
         Determines if the current player's king is in check.
 
@@ -168,15 +170,18 @@ class Board:
             A tuple containing a boolean value indicating if the king is in check,
             and the color of the king that is in check.
         """
-        is_check, self.white_threats, self.black_threats = False, [], []
-        for king in [self.white_king, self.black_king]: # TODO: (NOTE) May not have to check 2 kings everytime
+        is_check, checked_color, self.white_threats, self.black_threats = False, None, [], []
+        check_kings = self.kings if not color else [self.kings[color]]
+
+        for king in check_kings:
             for row in self.board:
                 for piece in row:
                     if piece and piece.color != king.color:
                         if piece.is_valid_move(king.pos, self.board):
                             is_check = True
+                            checked_color = king.color
                             self.white_threats.append(piece) if king.color else self.black_threats.append(piece)
-        return is_check, king.color
+        return is_check, checked_color
                     
     def is_checkmate(self, color):
         """
@@ -215,7 +220,7 @@ class Board:
             if (0 <= new_row < 8 and 0 <= new_col < 8):
                 if king.is_valid_move(new_pos, self.board):
                     # Temp move
-                    original_piece = self.board[new_pos[0]][new_pos[1]]
+                    original_piece = self.get_piece_from(new_pos)
                     self.board[king.pos[0]][king.pos[1]], self.board[new_pos[0]][new_pos[1]] = None, king
                     if not self.is_in_check():
                         # Restore pieces

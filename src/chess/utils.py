@@ -12,4 +12,4 @@ def valid_move_input(prompt):
                     if response[2] == " ":
                         return response
 
-        print("\nInvalid input", end=" ")
+        print(f"Invalid input ('{response}')", end="\n\n")
