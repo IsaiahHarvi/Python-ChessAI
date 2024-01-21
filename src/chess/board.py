@@ -24,14 +24,11 @@ class Board:
         """
         Initializes the Board object.
         """
-        self.board = None
-        self.create_start_board()
-        self.white_king = self.get_piece_from((0, 3))
-        self.black_king = self.get_piece_from((7, 3))
-        self.white_pieces = None
-        self.black_pieces = None
-        self.white_threats = None
-        self.black_threats = None
+        self.board = self.create_start_board()
+        self.white_king, self.black_king = self.get_piece_from((0, 3)), self.get_piece_from((7, 3))
+        self.white_pieces, self.white_threats = None, None
+        self.black_pieces, self.black_threats = None, None
+
         self.kings = [self.black_king, self.white_king]
 
     def create_start_board(self):
@@ -53,7 +50,7 @@ class Board:
             row1.append(pieces[0](1, pos=(1, col)))
             row6.append(pieces[0](-1, pos=(6, col)))
 
-        self.board = [
+        board = [
                 row0, 
                 row1, 
                 [None for _ in range(8)], 
@@ -63,11 +60,13 @@ class Board:
                 row6, 
                 row7
             ]
-        np.array(self.board)
+        board = np.array(board)
 
         # Update piece lists
         self.white_pieces = row7.copy().extend(row6)
         self.black_pieces = row1.copy().extend(row0)
+
+        return board
 
 
     def print_board(self):
@@ -210,7 +209,6 @@ class Board:
                         if piece.is_valid_move(at_location[0], self.board):
                             return True
             return False
-
                     
     def is_checkmate(self, color):
         """
