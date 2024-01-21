@@ -26,8 +26,8 @@ class Board:
         """
         self.board = None
         self.create_start_board()
-        self.white_king = self.get_piece_from((0, 4))
-        self.black_king = self.get_piece_from((7, 4))
+        self.white_king = self.get_piece_from((0, 3))
+        self.black_king = self.get_piece_from((7, 3))
         self.white_pieces = None
         self.black_pieces = None
         self.white_threats = None
@@ -38,7 +38,7 @@ class Board:
         """
         Creates the starting configuration of the chess board.
         """
-        pieces = [Pawn, Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook]
+        pieces = [Pawn, Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]
         
         # Main pieces
         row0, row7 = [], []
