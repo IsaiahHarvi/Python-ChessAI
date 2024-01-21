@@ -97,6 +97,8 @@ class Board:
                 # Reset color
                 print("\033[0m", end="")
             print("\033[0m")
+        print("    a  b  c  d  e  f  g  h")
+
 
     def move_piece(self, current_pos, new_pos, turn_color):
         """
@@ -229,7 +231,7 @@ class Board:
         if self.can_block_king(king) or self.can_eliminate_threat(king):
             return False
         
-        return True
+        return Exception("Checkmate!") # TODO: Actually end the game
 
     def can_king_escape(self, king):
         """
@@ -324,6 +326,9 @@ class Board:
         row, col = king.pos
         new_row, new_col = new_pos
 
+        if king.has_moved or self.get_piece_from(new_pos).has_moved:
+            return False
+        
         # Check if the king is in check
         if self.is_in_check([king.pos, king.color]):
             print("Can't castle while in check!")

@@ -19,6 +19,7 @@ class Piece:
     def __init__(self, color, pos) -> None:
         self.color = color
         self.pos = pos
+        self.has_moved = 0
 
     def is_valid_move(self, new_pos, board) -> bool:
         """
@@ -49,7 +50,6 @@ class Piece:
 class Pawn(Piece):
     def __init__(self, color, pos) -> None:
         super().__init__(color, pos)
-        self.first_move = True
         self.id = "P" if color == 1 else "p"
 
     def is_valid_move(self, new_pos, board) -> bool:
@@ -58,12 +58,11 @@ class Pawn(Piece):
         # NOTE: self.color is -1 or +1, so it is used to determine direction
         
         # General Movement
-        if self.first_move and abs(new_row - row) in [2, 5]:
+        if self.has_moved == 0 and abs(new_row - row) in [2, 5]:
             # If first move, can move 2 spaces
             if new_row == (row + (2 * self.color)) and col == new_col:
                  # If no pieces in the way
                 if (board[row + (1 * self.color)][col] == None and board[new_row][new_col] == None):
-                    self.first_move = False
                     return True
                 
         # If not first move, can only move 1 space
@@ -128,7 +127,7 @@ class Knight(Piece):
     def __init__(self, color, pos) -> None:
         super().__init__(color, pos)
         self.id = "N" if color == 1 else "n"
-    
+
     def is_valid_move(self, new_pos, board) -> bool:
         row, col = self.pos
         new_row, new_col = new_pos
@@ -155,7 +154,7 @@ class Bishop(Piece):
     def __init__(self, color, pos) -> None:
         super().__init__(color, pos)
         self.id = "B" if color == 1 else "b"
-    
+
     def is_valid_move(self, new_pos, board) -> bool:
         row, col = self.pos
         new_row, new_col = new_pos
@@ -239,7 +238,6 @@ class King(Piece):
         self.id = "K" if color == 1 else "k"
         self.moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
 
-
     def is_valid_move(self, new_pos, board) -> bool:
         row, col = self.pos
         new_row, new_col = new_pos
@@ -253,7 +251,6 @@ class King(Piece):
         col_diff = abs(new_col - col)
 
         # One square any direction
-        # TODO: Check if moving into check
         if row_diff <= 1 and col_diff <= 1 and (row_diff + col_diff > 0):
             destination_piece = board[new_row][new_col]
             if destination_piece is not None:
