@@ -56,7 +56,7 @@ class Pawn(Piece):
         row, col = self.pos
         new_row, new_col = new_pos
         # NOTE: self.color is -1 or +1, so it is used to determine direction
-        
+
         # General Movement
         if self.has_moved == 0 and abs(new_row - row) in [2, 5]:
             # If first move, can move 2 spaces
@@ -68,6 +68,8 @@ class Pawn(Piece):
         # If not first move, can only move 1 space
         if new_row == row + (1 * self.color) and new_col == col:
             if board[new_row][new_col] == None:  # If no pieces in the way
+                if new_row in [0,7]:
+                    return Queen(self.color, new_pos)
                 return True
                 
         # Capture
@@ -77,14 +79,11 @@ class Pawn(Piece):
             if desired_location is not None:
                 if (desired_location.id.islower() and self.id.isupper()) or \
                     (desired_location.id.isupper() and self.id.lower()):
+                    if new_row in [0,7]:
+                        return Queen(self.color, new_pos)
                     return True
-                
         # TODO: En Passant
         return False
-
-    # Promotion TODO: Implement promotion
-    def promote(self, board):
-        raise NotImplementedError
 
 class Rook(Piece):
     def __init__(self, color, pos) -> None:
@@ -258,7 +257,7 @@ class King(Piece):
                     (destination_piece.id.isupper() and self.id.isupper()) or \
                         (destination_piece.id.islower() and self.id.islower()):
                     return False
-            return True
+            return 'king'
         
         # Castling
         elif row_diff == 0 and col_diff == 2 and self.pos == (row, 3):

@@ -122,16 +122,24 @@ class Board:
 
         # Check if piece can move to new position
         if (piece != None and (moved := piece.is_valid_move(new_pos, self.board))):
-            if moved == 'castle':
+            # Special Cases
+            if moved == 'king':
+                if self.is_in_check([new_pos, piece.color]):
+                    print("Invalid move: Can't move into check!", end="\n\n")
+                    return False
+
+            elif moved == 'castle':
                 if self.can_king_castle(new_pos, piece):
                     self.castle_king(new_pos, piece)
                     return True
                 print(f"Invalid Move: {current_pos} -> {new_pos}", end="\n\n")
                 return False
-    
-            # elif moved == 'pawn_promotion':
-            #     piece.promote(new_pos, self.board)
-            #     return True
+
+            elif isinstance(moved, Queen):
+                self.set_piece_at(new_pos, current_pos, moved)
+                return True
+            
+            # Regular move
             else:
                 self.set_piece_at(new_pos, current_pos, piece)
                 return True
@@ -139,7 +147,6 @@ class Board:
         else:
             print(f"Invalid move: {current_pos} -> {new_pos}", end="\n\n")
             return False
-            # TODO: Add error handling
 
     def get_piece_from(self, pos):
         """
