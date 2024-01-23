@@ -14,21 +14,24 @@ def chess():
     board = Board()
     board.print_board()
     turn_color = 1
+    player_checked = False
 
     try:
         print("\n\n")
         while True:
+            print("PC", player_checked)
             position = valid_move_input(f"\n{['Black', 'White'][turn_color]}'s move: ").split()
 
             # If the move was valid, switch turns
-            if board.move_piece(position[0], position[1], turn_color) == 1:
+            if board.move_piece(position[0], position[1], turn_color, player_checked) == 1:
                 checked, color = board.is_in_check()
                 if checked and board.is_checkmate(color): # If the king is in checkmate
                     input(f"Checkmate! {['Black', 'White'][not color]} wins!")
-                    break
+                    break # End the game
 
-                elif checked: # If the king is in check, but not checkmate 
+                elif checked == 1: # If the king is in check, but not checkmate 
                     print(f"Check! {['Black', 'White'][not color]} is in check!")
+                    player_checked = True # Set the player checked flag to limit the moves they can make
 
                 board.print_board()
                 turn_color = not turn_color

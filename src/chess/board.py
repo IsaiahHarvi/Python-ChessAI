@@ -24,12 +24,10 @@ class Board:
         """
         Initializes the Board object.
         """
-        self.board = self.create_start_board()
-        self.white_king, self.black_king = self.get_piece_from((0, 3)), self.get_piece_from((7, 3))
         self.white_pieces, self.white_threats = None, None
         self.black_pieces, self.black_threats = None, None
-
-        self.kings = [self.black_king, self.white_king]
+        self.board = self.create_start_board()
+        self.kings = [self.get_piece_from((7, 3)), self.get_piece_from((0, 3))]
 
     def create_start_board(self):
         """
@@ -61,13 +59,26 @@ class Board:
                 row7
             ]
         board = np.array(board)
-
-        # Update piece lists
-        self.white_pieces = row7.copy().extend(row6)
-        self.black_pieces = row1.copy().extend(row0)
-
+        self.update_piece_lists()
         return board
 
+    def update_piece_lists(self):
+        """
+        Updates the lists of pieces with what is currently on the board.
+        """
+        self.white_pieces, self.white_threats = [], []
+        self.black_pieces, self.black_threats = [], []
+        self.kings = []
+
+        for row in self.board:
+            for piece in row:
+                if isinstance(piece, King):
+                    self.kings.insert(piece.color, piece)
+                elif piece:
+                    if piece.color == 1:
+                        self.white_pieces.append(piece)
+                    else:
+                        self.black_pieces.append(piece)
 
     def print_board(self):
         """
@@ -99,7 +110,7 @@ class Board:
         print("    a  b  c  d  e  f  g  h")
 
 
-    def move_piece(self, current_pos, new_pos, turn_color):
+    def move_piece(self, current_pos, new_pos, turn_color, player_checked=False):
         """
         Moves a chess piece from the current position to the new position.
 
@@ -119,23 +130,43 @@ class Board:
         # Show the retrieved piece
         print(retrieved_string := f"Retrieved '{piece.__class__.__name__}' from {current_pos}")
         print(f"{'─' * len(retrieved_string)}")
+        moved = piece.is_valid_move(new_pos, self.board)
 
-        # Check if piece can move to new position
-        if (piece != None and (moved := piece.is_valid_move(new_pos, self.board))):
-            # Special Cases
-            if moved == 'king':
-                if self.is_in_check([new_pos, piece.color]):
+        # If the player is currently in check, they can only escape check
+        if (piece and moved) and player_checked:
+            # Temp move the piece
+            original_piece = self.get_piece_from(new_pos)
+            self.board[current_pos[0]][current_pos[1]], self.board[new_pos[0]][new_pos[1]] = None, piece # Move the piece
+
+            if self.is_in_check([new_pos, piece.color]): # If the king is still in check
+                print("Invalid move: You're in check!", end="\n\n")
+                self.board[current_pos[0]][current_pos[1]], self.board[new_pos[0]][new_pos[1]] = piece, original_piece # Restore pieces
+                return False
+            
+            else: # If the king is no longer in check
+                self.board[current_pos[0]][current_pos[1]], self.board[new_pos[0]][new_pos[1]] = piece, original_piece # Restore pieces
+                self.set_piece_at(new_pos, current_pos, piece)
+                return True
+        
+        # If the player is not in check
+        if (piece and moved) and not player_checked:
+            if isinstance(piece, King): # If the piece is a king
+                if self.is_in_check([new_pos, piece.color]): # They can't move into check
                     print("Invalid move: Can't move into check!", end="\n\n")
                     return False
 
-            elif moved == 'castle':
-                if self.can_king_castle(new_pos, piece):
-                    self.castle_king(new_pos, piece)
+                elif moved == 'castle': # If the piece is a king and the king moved laterally 2 spaces
+                    if self.can_king_castle(new_pos, piece): # If the king can castle
+                        self.castle_king(new_pos, piece) # Castle the king
+                        return True
+                    print(f"Invalid Move: {current_pos} -> {new_pos}", end="\n\n")
+                    return False
+    
+                else: # Regular move
+                    self.set_piece_at(new_pos, current_pos, piece)
                     return True
-                print(f"Invalid Move: {current_pos} -> {new_pos}", end="\n\n")
-                return False
-
-            elif isinstance(moved, Queen):
+                    
+            elif isinstance(moved, Queen): # If the result of moving the piece is a queen, it was a pawn promotion
                 self.set_piece_at(new_pos, current_pos, moved)
                 return True
             
@@ -143,7 +174,6 @@ class Board:
             else:
                 self.set_piece_at(new_pos, current_pos, piece)
                 return True
-
         else:
             print(f"Invalid move: {current_pos} -> {new_pos}", end="\n\n")
             return False
@@ -197,6 +227,7 @@ class Board:
             If at_location is specified, returns a boolean value indicating if the king will be in check.
         """
         is_check, checked_color, self.white_threats, self.black_threats = False, None, [], []
+        if len(self.kings) != 2: raise Exception("Missing King.")
 
         if not at_location:
             for king in self.kings:
