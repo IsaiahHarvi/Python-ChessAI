@@ -19,7 +19,6 @@ def chess():
     try:
         print("\n\n")
         while True:
-            print("PC", player_checked)
             position = valid_move_input(f"\n{['Black', 'White'][turn_color]}'s move: ").split()
 
             # If the move was valid, switch turns

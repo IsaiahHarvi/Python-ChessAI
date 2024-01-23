@@ -27,6 +27,8 @@ class Board:
         self.white_pieces, self.white_threats = None, None
         self.black_pieces, self.black_threats = None, None
         self.board = self.create_start_board()
+        self.piece_count = 32 # Count of the number of pieces on the board--used to determine when to update the piece lists
+        self.update_piece_lists()
         self.kings = [self.get_piece_from((7, 3)), self.get_piece_from((0, 3))]
 
     def create_start_board(self):
@@ -59,7 +61,6 @@ class Board:
                 row7
             ]
         board = np.array(board)
-        self.update_piece_lists()
         return board
 
     def update_piece_lists(self):
@@ -79,17 +80,19 @@ class Board:
                         self.white_pieces.append(piece)
                     else:
                         self.black_pieces.append(piece)
+        self.piece_count = (len(self.white_pieces) + len(self.black_pieces))
 
     def print_board(self):
         """
         Prints the current state of the chess board.
         """
         row_label = [1, 2, 3, 4, 5, 6, 7, 8]
-
+        sum_pieces = 0
         print("    a  b  c  d  e  f  g  h")
         for index, i in enumerate(self.board):
             print(row_label[index], end = "  ")
             for jndex, piece in enumerate(i):
+                sum_pieces += 1 if piece else 0
                 # Print Colors
                 if (index + jndex) % 2 == 0:
                     print("\033[48;5;208m", end="")
@@ -109,6 +112,7 @@ class Board:
             print("\033[0m")
         print("    a  b  c  d  e  f  g  h")
 
+        self.update_piece_lists() if sum_pieces < self.piece_count else None
 
     def move_piece(self, current_pos, new_pos, turn_color, player_checked=False):
         """
