@@ -32,7 +32,9 @@ class Piece:
         Returns:
             bool: True if the move is valid, False otherwise.
         """
-        pass
+        #if self.pos in self.get_all_moves(board):
+        #    return True
+        # TODO: Test the get_all_moves then switch is_valid_move to use this logic
 
     def get_all_moves(self, board) -> list:
         """
@@ -363,5 +365,4 @@ class King(Piece):
         for direction in range[-2, 2]:
             if board.can_king_castle((row, col+direction), self):
                 moves.append((row, col+direction))
-
         return moves
