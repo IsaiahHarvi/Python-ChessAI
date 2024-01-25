@@ -80,7 +80,6 @@ class Board:
                         self.white_pieces.append(piece)
                     else:
                         self.black_pieces.append(piece)
-        self.piece_count = (len(self.white_pieces) + len(self.black_pieces))
 
     def print_board(self):
         """
@@ -112,7 +111,8 @@ class Board:
             print("\033[0m")
         print("    a  b  c  d  e  f  g  h")
 
-        self.update_piece_lists() if sum_pieces < self.piece_count else None
+        self.update_piece_lists() if sum_pieces < self.piece_count else None 
+        self.piece_count = sum_pieces
 
     def move_piece(self, current_pos, new_pos, turn_color, player_checked=False):
         """
@@ -213,6 +213,17 @@ class Board:
 
         # Update piece position
         piece.pos = pos
+        piece.has_moved = True
+
+    def get_all_moves(self, color=int) -> list:
+        pieces = self.white_pieces if color else self.black_pieces
+        valid_moves = []
+
+        for piece in pieces:
+            print(piece)
+            valid_moves.append(piece.get_all_moves(self.board))
+        return valid_moves
+
 
     # TODO: Optimize 
     def is_in_check(self, at_location=None) -> tuple or bool:
@@ -252,12 +263,12 @@ class Board:
                             return True
             return False
                     
-    def is_checkmate(self, color):
+    def is_checkmate(self, color=int):
         """
         Determines if the specified color is in checkmate.
 
         Parameters:
-        - color (str): The color of the player to check for checkmate.
+        - color (int): The color of the player to check for checkmate.
 
         Returns:
         - bool: True if the specified color is in checkmate, False otherwise.

@@ -44,7 +44,8 @@ class Piece:
         Returns:
             list: A list of all possible moves for the piece on the given chessboard.
         """
-        pass
+        moves = []
+
 
 # Child classes
 class Pawn(Piece):
@@ -84,6 +85,28 @@ class Pawn(Piece):
                     return True
         # TODO: En Passant
         return False
+    
+    def get_all_moves(self, board) -> list:
+        moves = []
+        row, col = self.pos
+        step = -1 if self.color == 1 else 1
+
+        # Forward movement
+        if board[row+step][col] is None:
+            moves.append((row+step, col))
+            # If first move, can move 2 spaces
+            if not self.has_moved and board[(row+2)*step][col] is None:
+                moves.append((row + 2 * step, col))
+
+        # Capturing
+        for lateral in [-1, 1]:
+            if 0 <= (col+lateral) < 8:
+                capture_row, capture_col = (row+step, col+lateral)
+                # If there is a piece to capture
+                if board[capture_row][capture_col] is not None:
+                    if board[capture_row][capture_col].color != self.color:
+                        moves.append((capture_row, capture_col))
+        return moves
 
 class Rook(Piece):
     def __init__(self, color, pos) -> None:
@@ -122,6 +145,24 @@ class Rook(Piece):
                 return False
         return True
     
+    def get_all_moves(self, board) -> list:
+        row, col = self.pos
+        moves = []
+        potential_moves = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+        for direction in potential_moves:
+            for i in range(1, 8):
+                potent_row, potent_col = direction[0], direction[1]
+                end_row = row + potent_row * i
+                end_col = col + potent_col * i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    end_pos = board[end_row][end_col]
+                    if end_pos is None or end_pos.color != self.color: # If the square is empty
+                        moves.append((end_row, end_col))
+                        break
+                    else: break
+                else: break
+        return moves
+    
 class Knight(Piece):
     def __init__(self, color, pos) -> None:
         super().__init__(color, pos)
@@ -148,6 +189,20 @@ class Knight(Piece):
                     return True
             return True
         return False
+    
+    def get_all_moves(self, board) -> list:
+        row, col = self.pos
+        moves = []
+        potential_moves = [(2, 1), (2, -1), (-2, 1), (-2, -1), (1, 2), (1, -2), (-1, 2), (-1, -2)]
+        for direction in potential_moves:
+            potent_row, potent_col = direction[0], direction[1]
+            end_row = row + potent_row
+            end_col = col + potent_col
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                end_pos = board[end_row][end_col]
+                if end_pos is None or end_pos.color != self.color:
+                    moves.append((end_row, end_col))
+        return moves
 
 class Bishop(Piece):
     def __init__(self, color, pos) -> None:
@@ -184,6 +239,24 @@ class Bishop(Piece):
                (destination_piece.id.islower() and self.id.islower()):
                 return False
         return True
+        
+    def get_all_moves(self, board) -> list:
+        row, col = self.pos
+        moves = []
+        potential_moves = [(1, 1), (1, -1), (-1, 1), (-1, -1)]
+        for direction in potential_moves:
+            potent_row, potent_col = direction[0], direction[1]
+            for i in range(1, 8):
+                end_row = row + potent_row * i
+                end_col = col + potent_col * i
+                if 0 <= end_row < 8 and 0 <= end_col < 8:
+                    end_pos = board[end_row][end_col]
+                    if end_pos is None or end_pos.color != self.color:
+                        moves.append((end_row, end_col))
+                        break
+                    else: break
+                else: break
+        return moves
 
 class Queen(Piece):
     def __init__(self, color, pos) -> None:
@@ -230,6 +303,11 @@ class Queen(Piece):
               (destination_piece.id.islower() == self.id.islower())):
             return False
         return True
+    
+    def get_all_moves(self, board) -> list:
+        # Queen moves are a combination of Rook and Bishop moves
+        return Rook.get_all_moves(self, board) + Bishop.get_all_moves(self, board)
+
 
 class King(Piece):
     def __init__(self, color, pos) -> None:
@@ -257,10 +335,33 @@ class King(Piece):
                     (destination_piece.id.isupper() and self.id.isupper()) or \
                         (destination_piece.id.islower() and self.id.islower()):
                     return False
-            return 'king'
-        
+            return True
+                
         # Castling
         elif row_diff == 0 and col_diff == 2 and self.pos == (row, 3):
-            return 'castle'
+            return 'castle' # Return 'castle' to indicate that the move is valid logically and is a castle move
         return False
     
+    def get_all_moves(self, board) -> list:
+        row, col = self.pos
+        moves = []
+        potential_moves = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+
+        for direction in potential_moves:
+            potent_row, potent_col = direction[0], direction[1]
+            end_row = row + potent_row
+            end_col = col + potent_col
+
+            # Check if the move is within the board
+            if 0 <= end_row < 8 and 0 <= end_col < 8:
+                end_pos = board[end_row][end_col]
+                if end_pos is None or end_pos.color != self.color:
+                    if not board.is_in_check([end_pos, self.color]):
+                        moves.append((end_row, end_col))
+
+        # Castling
+        for direction in range[-2, 2]:
+            if board.can_king_castle((row, col+direction), self):
+                moves.append((row, col+direction))
+
+        return moves

@@ -10,7 +10,7 @@ def chess():
     """
 
     input("\nMoves are given in the format: 'a2 a4' (from a2 to a4)\nPress enter to continue...")
-
+    #global board
     board = Board()
     board.print_board()
     turn_color = 1
