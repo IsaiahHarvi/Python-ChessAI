@@ -1,6 +1,6 @@
-import os
+import copy
 import numpy as np
-from piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
+from ..chess.piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 
 
 class Board:
@@ -81,14 +81,15 @@ class Board:
                     else:
                         self.black_pieces.append(piece)
 
-    def print_board(self):
+    def print_board(self, copy_board=None):
         """
         Prints the current state of the chess board.
         """
+        board = copy_board if copy_board is not None else self.board
         row_label = [1, 2, 3, 4, 5, 6, 7, 8]
         sum_pieces = 0
         print("    a  b  c  d  e  f  g  h")
-        for index, i in enumerate(self.board):
+        for index, i in enumerate(board):
             print(row_label[index], end = "  ")
             for jndex, piece in enumerate(i):
                 sum_pieces += 1 if piece else 0
@@ -114,7 +115,7 @@ class Board:
         self.update_piece_lists() if sum_pieces < self.piece_count else None 
         self.piece_count = sum_pieces
 
-    def move_piece(self, current_pos, new_pos, turn_color, player_checked=False):
+    def move_piece(self, current_pos, new_pos, player_checked=False):
         """
         Moves a chess piece from the current position to the new position.
 
@@ -124,17 +125,14 @@ class Board:
         """
         current_pos = (int(current_pos[1]) - 1, ord(current_pos[0]) - 97)
         new_pos = (int(new_pos[1]) - 1, ord(new_pos[0]) - 97)
-
-        # White can't move black and vice versa
         piece = self.get_piece_from(current_pos)
-        if piece and (not ((piece.color == 1 and turn_color == 1) or (piece.color == -1 and turn_color == 0))):
-            print("Invalid move: Not your piece!")
-            return False
 
         # Show the retrieved piece
         print(retrieved_string := f"Retrieved '{piece.__class__.__name__}' from {current_pos}")
         print(f"{'─' * len(retrieved_string)}")
-        moved = piece.is_valid_move(new_pos, self.board)
+
+        if piece:
+            moved = piece.is_valid_move(new_pos, self.board)
 
         # If the player is currently in check, they can only escape check
         if (piece and moved) and player_checked:
@@ -163,7 +161,7 @@ class Board:
                     if self.can_king_castle(new_pos, piece): # If the king can castle
                         self.castle_king(new_pos, piece) # Castle the king
                         return True
-                    print(f"Invalid Move: {current_pos} -> {new_pos}", end="\n\n")
+                    print(f"Invalid Castle: {current_pos} -> {new_pos}", end="\n\n")
                     return False
     
                 else: # Regular move
@@ -182,7 +180,7 @@ class Board:
             print(f"Invalid move: {current_pos} -> {new_pos}", end="\n\n")
             return False
 
-    def get_piece_from(self, pos):
+    def get_piece_from(self, pos, copy_board=None):
         """
         Retrieves the chess piece at the specified position.
 
@@ -192,10 +190,11 @@ class Board:
         Returns:
             object: The chess piece at the specified position.
         """
+        board = copy_board if copy_board is not None else self.board
         row, col = pos
-        return self.board[row][col]
+        return board[row][col]
 
-    def set_piece_at(self, pos, old_pos, piece):
+    def set_piece_at(self, pos, old_pos, piece, copy_board=None):
         """
         Sets a chess piece at the specified position and updates its old position.
 
@@ -204,24 +203,35 @@ class Board:
             old_pos (tuple): The old position of the piece as a tuple of row and column indices.
             piece (object): The chess piece object to set at the specified position.
         """
+        board = copy_board if copy_board is not None else self.board
         row, col = pos
-        self.board[row][col] = piece
+        board[row][col] = piece
 
         # Remove piece from old position
         old_row, old_col = old_pos
-        self.board[old_row][old_col] = None
+        board[old_row][old_col] = None
 
         # Update piece position
         piece.pos = pos
         piece.has_moved = True
+    
+    def get_moves(self, color=int) -> list:
+        """
+        Gets the valid moves for all pieces of a specific color on the board.
 
-    def get_all_moves(self, color=int) -> list:
-        pieces = self.white_pieces if color else self.black_pieces
+        Args:
+            color (int): The color of the pieces to get the valid moves for.
+        """
+        if color == 1:
+            pieces = self.white_pieces
+        elif color == 0:
+            pieces = self.black_pieces
+
         valid_moves = []
-
         for piece in pieces:
-            print(piece)
-            valid_moves.append(piece.get_all_moves(self.board))
+            for move in piece.get_all_moves(self.board):
+                if move:
+                    valid_moves.append(move)
         return valid_moves
 
 
@@ -263,7 +273,7 @@ class Board:
                             return True
             return False
                     
-    def is_checkmate(self, color=int):
+    def is_checkmate(self, color=False):
         """
         Determines if the specified color is in checkmate.
 
@@ -274,13 +284,13 @@ class Board:
         - bool: True if the specified color is in checkmate, False otherwise.
         """
         # Check if King can move out of check
-        king = self.kings[color]
 
-        if self.can_king_escape(king):
-            return False
+        for king in self.kings if not color else [self.kings[color]]:
+            if self.can_king_escape(king):
+                return False
 
-        if self.can_block_king(king) or self.can_eliminate_threat(king):
-            return False
+            if self.can_block_king(king) or self.can_eliminate_threat(king):
+                return False
         
         return Exception("Checkmate!") # TODO: Actually end the game
 
@@ -363,7 +373,7 @@ class Board:
                             return True
         return False
     
-    def can_king_castle(self, new_pos, king) -> bool:
+    def can_king_castle(self, new_pos, king, copy_board=None) -> bool:
         """
         Checks if the king can castle to the given position on the given board.
 
@@ -374,6 +384,7 @@ class Board:
         Returns:
             bool: True if the king can castle to the given position, False otherwise.
         """
+        board = copy_board if copy_board is not None else self.board
         row, col = king.pos
         new_row, new_col = new_pos
 
@@ -397,7 +408,7 @@ class Board:
         # Check if there are any pieces between the king and the rook
         # and check if the king is moving into check
         for c in range(col+step, new_col-step, step):
-            if self.board[row][c] is not None or (self.is_in_check([(row, c), king.color])):
+            if board[row][c] is not None or (self.is_in_check([(row, c), king.color])):
                 print("Can't castle through pieces or check!")
                 return False
         
@@ -408,14 +419,15 @@ class Board:
         
         return True
     
-    def castle_king(self, new_pos, king) -> None:
+    def castle_king(self, new_pos, king, copy_board=None) -> None:
         """
         Castles the king to the given position on the given board.
 
         Args:
             new_pos (tuple): The position to which the king is being castled.
-            board (Board): The chessboard on which the king is placed.
+            copy_board (Board): The chessboard on which the king is placed.
         """
+        board = copy_board if copy_board is not None else self.board
         row, col = king.pos
         _, new_col = new_pos
 
@@ -425,5 +437,31 @@ class Board:
 
         rook = self.get_piece_from((row, rook_col))
 
-        self.set_piece_at(new_pos, king.pos, king)
-        self.set_piece_at((row, move_rook_col), (row, rook_col), rook)
+        self.set_piece_at(new_pos, king.pos, king, board)
+        self.set_piece_at((row, move_rook_col), (row, rook_col), rook, board)
+
+    def simulate_move(self, move) -> np.ndarray:
+        """
+        Simulates a move on the board.
+
+        Args:
+            move (tuple): The move to simulate.
+        """
+        c_board = copy.deepcopy(self.board)
+        current_pos, new_pos = move
+        piece = self.get_piece_from(current_pos, c_board)
+
+        if piece and (moved := piece.is_valid_move(new_pos, c_board)):
+            if isinstance(piece, King) and moved == 'castle':
+                if self.can_king_castle(new_pos, piece, c_board):
+                    self.castle_king(new_pos, piece, c_board)
+                    return c_board  # Return the copied board with the move applied
+                return c_board  # Return the copied board without the move if castling is invalid
+            elif isinstance(moved, Queen):  # Pawn promotion
+                self.set_piece_at(new_pos, current_pos, moved, c_board)
+                return c_board
+            else:  # Regular move
+                self.set_piece_at(new_pos, current_pos, piece, c_board)
+                return c_board
+        else:
+            return c_board  # Return the copied board without the move if the move is invalid
