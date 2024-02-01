@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from ..chess.piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
+from piece import Piece, Pawn, Rook, Knight, Bishop, Queen, King
 
 
 class Board:
@@ -35,20 +35,19 @@ class Board:
         """
         Creates the starting configuration of the chess board.
         """
-        pieces = [Pawn, Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]
-        
+
         # Main pieces
         row0, row7 = [], []
-        for color in [-1, 1]:
-            for col, piece_object in enumerate(pieces[1:]):
+        for index, color in enumerate([-1, 1]):
+            for col, piece_object in enumerate([[Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook], [Rook, Knight, Bishop, King, Queen, Bishop, Knight, Rook]][index]):
                 piece = piece_object(color=color, pos=(0 if color == 1 else 7, col))
                 row0.append(piece) if color == 1 else row7.append(piece)
 
         # Pawns
         row1, row6 = [], []
         for col in range(8):
-            row1.append(pieces[0](1, pos=(1, col)))
-            row6.append(pieces[0](-1, pos=(6, col)))
+            row1.append([Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn][col](1, pos=(1, col)))
+            row6.append([Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn, Pawn][col](-1, pos=(6, col)))
 
         board = [
                 row0, 
@@ -229,9 +228,11 @@ class Board:
 
         valid_moves = []
         for piece in pieces:
-            for move in piece.get_all_moves(self.board):
-                if move:
-                    valid_moves.append(move)
+            for valid_move in piece.get_all_moves(self.board):
+                if valid_move:
+                    if type(piece) == Pawn: print(valid_move)
+                    valid_moves.append(valid_move)
+
         return valid_moves
 
 

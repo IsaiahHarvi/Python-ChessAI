@@ -1,5 +1,6 @@
 import numpy as np
-from ..chess.piece import Knight, Bishop, Rook, Queen, King, Pawn
+import random
+from piece import Knight, Bishop, Rook, Queen, King, Pawn
 
 def minimax(board_obj, board, depth, alpha, beta, simulating_player=bool):
     if board_obj.is_checkmate():
@@ -11,9 +12,8 @@ def minimax(board_obj, board, depth, alpha, beta, simulating_player=bool):
     if simulating_player:
         max_eval = -np.inf
         for move in set(board_obj.get_moves(color=0)): # Black
-            print('PLAYER MOVE', move)
+            #print('PLAYER MOVE', move)
             c_board = board_obj.simulate_move(move)
-            #board_obj.print_board(c_board)
             eval = minimax(board_obj, c_board, depth-1, alpha, beta, simulating_player=False)
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
@@ -24,9 +24,8 @@ def minimax(board_obj, board, depth, alpha, beta, simulating_player=bool):
     else:
         min_eval = np.inf
         for move in set(board_obj.get_moves(color=1)): # White
-            print('AI MOVE', move, 'COLOR: ')
+            #print('AI MOVE', move, 'COLOR: ')
             c_board = board_obj.simulate_move(move)
-            #board_obj.print_board(c_board)
             eval = minimax(board_obj, c_board, depth-1, alpha, beta, simulating_player=True)
             min_eval = min(min_eval, eval)
             beta = min(beta, eval)
@@ -55,4 +54,4 @@ def evaluate(board):
                 else:
                     black_score += value[type(piece)]
     
-    return white_score - black_score # White is positive, black is negative
+    return white_score - black_score # White is positive, black is negativ

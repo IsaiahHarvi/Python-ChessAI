@@ -1,7 +1,7 @@
 import numpy as np
-from ..chess.board import Board
-from ..ai.mini_max import minimax
-from ..chess.utils import valid_move_input
+from board import Board
+from ai.mini_max import minimax
+from utils import valid_move_input
 
 def chess():
     """

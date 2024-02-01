@@ -54,37 +54,39 @@ class Pawn(Piece):
         self.id = "P" if color == 1 else "p"
 
     def is_valid_move(self, new_pos, board) -> bool:
-        row, col = self.pos
-        new_row, new_col = new_pos
-        # NOTE: self.color is -1 or +1, so it is used to determine direction
+        if (self.pos, new_pos) in self.get_all_moves(board):
+            return True
+        # row, col = self.pos
+        # new_row, new_col = new_pos
+        # # NOTE: self.color is -1 or +1, so it is used to determine direction
 
-        # General Movement
-        if self.has_moved == 0 and abs(new_row - row) in [2, 5]:
-            # If first move, can move 2 spaces
-            if new_row == (row + (2 * self.color)) and col == new_col:
-                 # If no pieces in the way
-                if (board[row + (1 * self.color)][col] == None and board[new_row][new_col] == None):
-                    return True
+        # # General Movement
+        # if self.has_moved == 0 and abs(new_row - row) in [2, 5]:
+        #     # If first move, can move 2 spaces
+        #     if new_row == (row + (2 * self.color)) and col == new_col:
+        #          # If no pieces in the way
+        #         if (board[row + (1 * self.color)][col] == None and board[new_row][new_col] == None):
+        #             return True
                 
-        # If not first move, can only move 1 space
-        if new_row == row + (1 * self.color) and new_col == col:
-            if board[new_row][new_col] == None:  # If no pieces in the way
-                if new_row in [0,7]:
-                    return Queen(self.color, new_pos)
-                return True
+        # # If not first move, can only move 1 space
+        # if new_row == row + (1 * self.color) and new_col == col:
+        #     if board[new_row][new_col] == None:  # If no pieces in the way
+        #         if new_row in [0,7]:
+        #             return Queen(self.color, new_pos)
+        #         return True
                 
-        # Capture
-        if new_row == row + (1 * self.color) and (new_col == col + 1 or new_col == col - 1):
-            # If the piece at the desired location is not
-            desired_location = board[new_row][new_col]
-            if desired_location is not None:
-                if (desired_location.id.islower() and self.id.isupper()) or \
-                    (desired_location.id.isupper() and self.id.lower()):
-                    if new_row in [0,7]:
-                        return Queen(self.color, new_pos)
-                    return True
-        # TODO: En Passant
-        return False
+        # # Capture
+        # if new_row == row + (1 * self.color) and (new_col == col + 1 or new_col == col - 1):
+        #     # If the piece at the desired location is not
+        #     desired_location = board[new_row][new_col]
+        #     if desired_location is not None:
+        #         if (desired_location.id.islower() and self.id.isupper()) or \
+        #             (desired_location.id.isupper() and self.id.lower()):
+        #             if new_row in [0,7]:
+        #                 return Queen(self.color, new_pos)
+        #             return True
+        # # TODO: En Passant
+        # return False
     
     def get_all_moves(self, board) -> list:
         moves = []
@@ -95,8 +97,8 @@ class Pawn(Piece):
         if 0 <= row+step < 8 and board[row+step][col] is None:
             moves.append(((row, col), (row+step, col)))
             # If first move, can move 2 spaces
-            if not self.has_moved and 0 <= row+2*step < 8 and board[(row+2)*step][col] is None:
-                moves.append(((row, col), (row + 2 * step, col)))
+            if not self.has_moved and 0 <= row+(2*step) < 8 and board[(row+(2*step))][col] is None:
+                moves.append(((row, col), (row +(2 * step), col)))
 
         # Capturing
         for lateral in [-1, 1]:
